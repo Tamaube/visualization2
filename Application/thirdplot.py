@@ -19,15 +19,15 @@ yearList = df_nutrition["YearStart"].unique()
 #select year
 df_nutrition = df_nutrition.loc[df_nutrition['YearStart'] == 2012]
 
-df_nutrition = df_nutrition.replace(np.nan, 'unknown')
+df_nutrition.replace(np.nan, 'unknown',inplace=True)
 
 #prepare dataset income NOT USED ANYMORE
-# df_nutrition.replace('Less than $15,000', '25k')
-# df_nutrition.replace('$15,000 - $24,999', '25k')
-# df_nutrition.replace('$25,000 - $34,999', '$25k-$50k')
-# df_nutrition.replace('$35,000 - $49,999', '$25k-$50k')
-# df_nutrition.replace('$50,000 - $74,999', '>$50k')
-# df_nutrition.replace('$75,000 or greater', '>$50k')
+# df_nutrition.replace('Less than $15,000', '25k',inplace=True)
+# df_nutrition.replace('$15,000 - $24,999', '25k',inplace=True)
+# df_nutrition.replace('$25,000 - $34,999', '$25k-$50k',inplace=True)
+# df_nutrition.replace('$35,000 - $49,999', '$25k-$50k',inplace=True)
+# df_nutrition.replace('$50,000 - $74,999', '>$50k',inplace=True)
+# df_nutrition.replace('$75,000 or greater', '>$50k',inplace=True)
 
 #convert categories into numerical vals
 df_nutrition['Education'] = pd.Categorical(df_nutrition['Education'])
