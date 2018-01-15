@@ -26,11 +26,17 @@ state_list = df_death_final["State"].unique()
 df_nutrition_final = df_nutrition[['YearStart', 'LocationDesc', 'Question', 'Data_Value', 'Gender']]
 #year list for slider
 year_list = df_nutrition_final["YearStart"].unique()
-#question list for the dropdown list
-question_list = df_nutrition_final["Question"].unique()
 
 #TODO: add the third plot, change title display, add slider for the year, put text when all is selected
 
+#replace long questions with a shorter equivalent
+df_nutrition_final["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)', 'Percent of adults who workout moderately at least 150 mins a week',inplace=True)
+df_nutrition_final["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activity and engage in muscle-strengthening activities on 2 or more days a week','Percent of adults who achieve at workout 150 mins a week & muscle-strengthening activities 2+ days a week',inplace=True)
+df_nutrition_final["Question"].replace('Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)','Percent of adults who workout moderately at least 300 mins a week',inplace=True)
+
+#question list for the dropdown list
+question_list = df_nutrition_final["Question"].unique()
+print(question_list)
 #build the option list of the state dropdown list
 options_state_list = [{'label': 'All', 'value': 'All'}]
 options_state_list.extend([{'label': i, 'value': i} for i in state_list])
@@ -52,7 +58,7 @@ app.layout = html.Div([
                 options=[{'label': i, 'value': i} for i in question_list],
                 value='Percent of adults aged 18 years and older who have obesity'
             )
-        ], style={'width': '49%', 'float': 'right', 'display': 'inline-block'})
+        ], style={'width': '49%','float': 'right', 'display': 'inline-block'})
     ], style={
         'borderBottom': 'thin lightgrey solid',
         'backgroundColor': 'rgb(250, 250, 250)',
