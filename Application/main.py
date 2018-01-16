@@ -89,7 +89,7 @@ app.layout = html.Div([
     ], style={'width': '49%', 'display': 'inline-block', 'padding': '0 20'}),
     html.Div([
         dcc.Graph(id='bar-chart'),
-        dcc.Graph(id='parallel-coordinate'),
+        dcc.Graph(id='line-chart'),
     ], style={'display': 'inline-block', 'width': '49%'}),
 
 ])
@@ -199,7 +199,7 @@ def bar_chart_percentage(state, percentage_type, year):
 
 #updating third plot
 @app.callback(
-    dash.dependencies.Output('parallel-coordinate', 'figure'),
+    dash.dependencies.Output('line-chart', 'figure'),
     [dash.dependencies.Input('options-state', 'value'),
     dash.dependencies.Input('year-slider', 'value')
      ])
@@ -221,60 +221,86 @@ def update_pcp(state, year):
         }
     # select year
     df_nutrition_pcp = df_nutrition_final.copy()
-    df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_final['YearStart'] == year]
+    df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_final['YearStart'] <= year]
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['LocationDesc'] == state]
 
     df_nutrition_pcp.replace(np.nan, 'unknown', inplace=True)
+    df_nutrition_pcp.replace('Less than $15,000', '25k', inplace=True)
+    df_nutrition_pcp.replace('$15,000 - $24,999', '25k', inplace=True)
+    df_nutrition_pcp.replace('$25,000 - $34,999', '25k-50k', inplace=True)
+    df_nutrition_pcp.replace('$35,000 - $49,999', '25k-50k', inplace=True)
+    df_nutrition_pcp.replace('$50,000 - $74,999', '>50k', inplace=True)
+    df_nutrition_pcp.replace('$75,000 or greater', '>50k', inplace=True)
 
-    # convert categories into numerical vals
-    df_nutrition_pcp['Education'] = pd.Categorical(df_nutrition_pcp['Education'])
-    df_nutrition_pcp['EducationCode'] = df_nutrition_pcp['Education'].cat.codes
-    df_nutrition_pcp['Gender'] = pd.Categorical(df_nutrition_pcp['Gender'])
-    df_nutrition_pcp['GenderCode'] = df_nutrition_pcp['Gender'].cat.codes
-    df_nutrition_pcp['Income'] = pd.Categorical(df_nutrition_pcp['Income'])
-    df_nutrition_pcp['IncomeCode'] = df_nutrition_pcp['Income'].cat.codes
-    df_nutrition_pcp['Age(years)'] = pd.Categorical(df_nutrition_pcp['Age(years)'])
-    df_nutrition_pcp['Age(years)Code'] = df_nutrition_pcp['Age(years)'].cat.codes
-    df_nutrition_pcp['Race/Ethnicity'] = pd.Categorical(df_nutrition_pcp['Race/Ethnicity'])
-    df_nutrition_pcp['Race/EthnicityCode'] = df_nutrition_pcp['Race/Ethnicity'].cat.codes
+    # education
+    # keep relevant columns
+    df_education = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Education', 'YearEnd']]
+    df_education = df_education.groupby(['LocationDesc', 'YearStart', 'Education'], as_index=False).count()
 
-    data = [
-        go.Parcoords(
-            line=dict(color=year,
-                      colorscale='Jet',
-                      showscale=True,
-                      # reversescale=True,
-                      cmin=2011,
-                      cmax=2015),
-            dimensions=list([
-                dict(tickvals=[4, 3, 2, 1, 0],
-                     ticktext=['unknown', 'Less HS', 'HS', 'TS', 'C'],
-                     label='education', values=df_nutrition_pcp['EducationCode']),
-                dict(tickvals=[7, 6, 5, 4, 3, 2, 1, 0],
-                     ticktext=['unknown', '<15K', 'not reported', '>75k', '50k-75k', '35k-50k', '25k-35k', '15k-25k'],
-                     label='income level', values=df_nutrition_pcp['IncomeCode']),
-                dict(tickvals=[2, 1, 0],
-                     ticktext=['unknown', 'M', 'F'],
-                     label='gender', values=df_nutrition_pcp['GenderCode']),
-                dict(tickvals=[6, 5, 4, 3, 2, 1, 0],
-                     visible=True,
-                     ticktext=['unknown', '65+', '55-64', '45-54', '35-44', '25-34', '18-24'],
-                     label='age category', values=df_nutrition_pcp['Age(years)Code']),
-                dict(tickvals=[8, 7, 6, 5, 4, 3, 2, 1, 0],
-                     ticktext=['unknown', 'other', 'NonHisp W', 'NonHisp B', 'Hisp', 'Hawaiian', 'Asian', 'AmericInd',
-                               '2+ races'],
-                     label='race', values=df_nutrition_pcp['Race/EthnicityCode'])
-            ])
+    # income
+    # keep relevant columns
+    df_income = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Income', 'YearEnd']]
+    df_income = df_income.groupby(['LocationDesc', 'YearStart', 'Income'], as_index=False).count()
+
+    # age
+    # keep rrelevant columns
+    df_age = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Age(years)', 'YearEnd']]
+    df_age = df_age.groupby(['LocationDesc', 'YearStart', 'Age(years)'], as_index=False).count()
+
+    # race
+    # keep rrelevant columns
+    df_race = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Race/Ethnicity', 'YearEnd']]
+    df_race = df_race.groupby(['LocationDesc', 'YearStart', 'Race/Ethnicity'], as_index=False).count()
+
+    data = []
+
+    educationList = df_education["Education"].unique()
+    for ed in educationList:
+        trace = go.Scatter(
+            x=df_education.loc[df_education['Education'] == ed]["YearStart"],
+            y=df_education.loc[df_education['Education'] == ed]["YearEnd"],
+            mode='lines',
+            name="Ed_" + ed
         )
-    ]
+        data.append(trace)
+
+    incomeList = df_income["Income"].unique()
+    for ed in incomeList:
+        trace = go.Scatter(
+            x=df_income.loc[df_income['Income'] == ed]["YearStart"],
+            y=df_income.loc[df_income['Income'] == ed]["YearEnd"],
+            mode='lines',
+            name="In_" + ed
+        )
+        data.append(trace)
+
+    ageList = df_age["Age(years)"].unique()
+    for ed in ageList:
+        trace = go.Scatter(
+            x=df_age.loc[df_age['Age(years)'] == ed]["YearStart"],
+            y=df_age.loc[df_age['Age(years)'] == ed]["YearEnd"],
+            mode='lines',
+            name="Age_" + ed
+        )
+        data.append(trace)
+
+    raceList = df_race["Race/Ethnicity"].unique()
+    for ed in raceList:
+        trace = go.Scatter(
+            x=df_race.loc[df_race['Race/Ethnicity'] == ed]["YearStart"],
+            y=df_race.loc[df_race['Race/Ethnicity'] == ed]["YearEnd"],
+            mode='lines',
+            name="Race_" + ed
+        )
+        data.append(trace)
+
     return {
         'data': data,
         'layout': go.Layout(
-            plot_bgcolor='#E5E5E5',
-            paper_bgcolor='#E5E5E5',
-            showlegend=True,
-            height=300,
-            margin={'l': 35, 'b': 10, 'r': 10, 't': 50},
+            #xaxis=dict(title='year'),
+            #yaxis=dict(title='count'),
+            height=250,
+            margin={'l': 20, 'b': 30, 'r': 10, 't': 10},
             annotations=[dict(
                 x=0, y=1, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
