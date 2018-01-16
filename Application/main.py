@@ -23,11 +23,10 @@ df_death_final = df_death_final.groupby(['Cause Name', 'State'],as_index=False).
 #extract list of state
 state_list = df_death_final["State"].unique()
 #only keep interesting columns
-df_nutrition_final = df_nutrition[['YearStart', 'LocationDesc', 'Question', 'Data_Value', 'Gender']]
+df_nutrition_final = df_nutrition[['YearStart', 'YearEnd','LocationDesc','Education','Income', 'Age(years)','Race/Ethnicity' , 'Question', 'Data_Value', 'Gender']]
 #year list for slider
 year_list = df_nutrition_final["YearStart"].unique()
 
-#TODO: add the third plot, change title display, add slider for the year, put text when all is selected
 
 #replace long questions with a shorter equivalent
 df_nutrition_final["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)', 'Percent of adults who workout moderately at least 150 mins a week',inplace=True)
@@ -36,7 +35,7 @@ df_nutrition_final["Question"].replace('Percent of adults who achieve at least 3
 
 #question list for the dropdown list
 question_list = df_nutrition_final["Question"].unique()
-print(question_list)
+
 #build the option list of the state dropdown list
 options_state_list = [{'label': 'All', 'value': 'All'}]
 options_state_list.extend([{'label': i, 'value': i} for i in state_list])
@@ -58,7 +57,15 @@ app.layout = html.Div([
                 options=[{'label': i, 'value': i} for i in question_list],
                 value='Percent of adults aged 18 years and older who have obesity'
             )
-        ], style={'width': '49%','float': 'right', 'display': 'inline-block'})
+        ], style={'width': '49%','float': 'right', 'display': 'inline-block'}),
+        html.Div(dcc.Slider(
+            id='year-slider',
+            min=year_list.min(),
+            max=year_list.max(),
+            value=year_list.max(),
+            step=None,
+            marks={str(year): str(year) for year in year_list}
+        ), style={'padding': '10px 20px 20px 20px'})
     ], style={
         'borderBottom': 'thin lightgrey solid',
         'backgroundColor': 'rgb(250, 250, 250)',
@@ -75,14 +82,7 @@ app.layout = html.Div([
         dcc.Graph(id='bar-chart'),
         dcc.Graph(id='parallel-coordinate'),
     ], style={'display': 'inline-block', 'width': '49%'}),
-    html.Div(dcc.Slider(
-        id='year-slider',
-        min=year_list.min(),
-        max=year_list.max(),
-        value=year_list.max(),
-        step=None,
-        marks={str(year): str(year) for year in year_list}
-    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+
 ])
 
 
@@ -91,8 +91,8 @@ app.layout = html.Div([
 [dash.dependencies.Input('options-state', 'value'),
 dash.dependencies.Input('year-slider', 'value')])
 def update_graph(state_input,year):
-    #df_death_graph = df_death_final[df_death_final['Year'] >= year]
-    df_death_graph= df_death_final
+    df_death_graph = df_death_final[df_death_final['Year'] <= year]
+    # df_death_graph= df_death_final
     data = []
     if(state_input != 'All'):
         data=[ go.Scatter(
@@ -122,11 +122,8 @@ def update_graph(state_input,year):
     return {
         'data': data,
         'layout': go.Layout(
-           # title='Cause of death',
-            xaxis=dict(title='Cause'),
-            yaxis=dict(title='Avg'),
-            margin={'l': 40, 'b': 30, 't': 10, 'r': 0},
-            height=450,
+            margin={'l': 40, 'b': 120, 't': 10, 'r': 0},
+            height=550,
             hovermode='closest'
         )
     }
@@ -138,12 +135,29 @@ def update_graph(state_input,year):
      dash.dependencies.Input('year-slider', 'value')])
 def bar_chart_percentage(state, percentage_type, year):
     # selected from lists
-    #df_nutrition_question = df_nutrition_final[df_nutrition_final['YearStart'] == year]
+   # df_nutrition_question = df_nutrition_final[df_nutrition_final['YearEnd'] == year]
+  #  df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['YearStart'] == 2011]
     #df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['LocationDesc'] == state]
+    data = []
+    if(state == 'All'):
+        return {
+        'data': data,
+        'layout': go.Layout(
+            height= 250,
+            margin ={'l': 20, 'b': 30, 'r': 10, 't': 10},
+            annotations=[dict(
+                x=0, y=0.85, xanchor='left', yanchor='bottom',
+                xref='paper', yref='paper', showarrow=False,
+                align='left', bgcolor='rgba(255, 255, 255, 0.5)',
+                text="You have to select a state in the left dropdown list", font=dict(family='sans serif', size=18)
+            )]
+        )
+    }
+
     df_nutrition_question = df_nutrition_final[df_nutrition_final['LocationDesc'] == state]
     df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['Question'] == percentage_type]
 
-    data = []
+
     gender_list = df_nutrition_question["Gender"].unique()
 
     for gender in gender_list:
@@ -158,10 +172,14 @@ def bar_chart_percentage(state, percentage_type, year):
         'data': data,
         'layout': go.Layout(
             barmode='stack',
-            #TODO show title but smaller
-            #title=percentage_type,
-            height= 225,
+            height= 250,
             margin ={'l': 20, 'b': 30, 'r': 10, 't': 10},
+            annotations=[dict(
+                x=0, y=0.85, xanchor='left', yanchor='bottom',
+                xref='paper', yref='paper', showarrow=False,
+                align='left', bgcolor='rgba(255, 255, 255, 0.5)',
+                text=percentage_type, font=dict(family='sans serif', size=18)
+            )]
         )
     }
 
@@ -172,11 +190,26 @@ def bar_chart_percentage(state, percentage_type, year):
     dash.dependencies.Input('year-slider', 'value')
      ])
 def update_pcp(state, year):
+    if (state == 'All'):
+        return {
+            'data': [],
+            'layout': go.Layout(
+                height=250,
+                margin={'l': 20, 'b': 30, 'r': 10, 't': 10},
+                annotations=[dict(
+                    x=0, y=0.85, xanchor='left', yanchor='bottom',
+                    xref='paper', yref='paper', showarrow=False,
+                    align='left', bgcolor='rgba(255, 255, 255, 0.5)',
+                    text="You have to select a state in the left dropdown list",
+                    font=dict(family='sans serif', size=18)
+                )]
+            )
+        }
     # select year
-    df_nutrition_pcp = df_nutrition_final[df_nutrition_final['YearStart'] == year]
+    df_nutrition_pcp = df_nutrition_final[df_nutrition_final['YearEnd'] == year]
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['LocationDesc'] == state]
 
-    df_nutrition_pcp = df_nutrition_pcp.replace(np.nan, 'unknown')
+    df_nutrition_pcp.replace(np.nan, 'unknown', inplace=True)
 
     # convert categories into numerical vals
     df_nutrition_pcp['Education'] = pd.Categorical(df_nutrition_pcp['Education'])
@@ -193,8 +226,8 @@ def update_pcp(state, year):
     data = [
         go.Parcoords(
             line=dict(color=year,
-                      colorscale='Jet',
-                      showscale=True,
+                     # colorscale='Jet',
+                      #showscale=True,
                       # reversescale=True,
                       cmin=2011,
                       cmax=2015),
@@ -224,8 +257,14 @@ def update_pcp(state, year):
             plot_bgcolor='#E5E5E5',
             paper_bgcolor='#E5E5E5',
             showlegend=True,
-            height=225,
-            margin={'l': 20, 'b': 30, 'r': 10, 't': 10}
+            height=300,
+            margin={'l': 20, 'b': 30, 'r': 10, 't': 10},
+            annotations=[dict(
+                x=0, y=1, xanchor='left', yanchor='bottom',
+                xref='paper', yref='paper', showarrow=False,
+                align='left', bgcolor='rgba(255, 255, 255, 0.5)',
+                text="", font=dict(family='sans serif', size=18)
+            )]
         )
     }
 
