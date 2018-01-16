@@ -10,23 +10,30 @@ app = dash.Dash()
 #preparing data set for question 1
 df_nutrition = pd.read_csv('Nutrition.csv')
 df_death = pd.read_csv('Leading_Causes_Death.csv')
-#only keep data from 2011 onwards
-df_death_final = df_death.loc[df_death['Year'] >= 2011]
+
+#only keep data from 2011 until 2015
+df_death = df_death.loc[df_death['Year'] >= 2011]
+df_nutrition = df_nutrition.loc[df_nutrition['YearStart'] <= 2015]
+
 #remove 'All Causes'
 df_death_final = df_death.loc[df_death['Cause Name'] != 'All Causes']
+
 #remove irrelevant columns
 df_death_final = df_death_final.drop('113 Cause Name', axis=1)
 df_death_final = df_death_final.drop('Age-adjusted Death Rate', axis=1)
 #df_death_final = df_death_final.drop('Year', axis=1)
+
 #aggregate per cause of death per state and compute average number of deaths
 df_death_final = df_death_final.groupby(['Cause Name', 'State'],as_index=False).mean()
+
 #extract list of state
 state_list = df_death_final["State"].unique()
+
 #only keep interesting columns
 df_nutrition_final = df_nutrition[['YearStart', 'YearEnd','LocationDesc','Education','Income', 'Age(years)','Race/Ethnicity' , 'Question', 'Data_Value', 'Gender']]
+
 #year list for slider
 year_list = df_nutrition_final["YearStart"].unique()
-
 
 #replace long questions with a shorter equivalent
 df_nutrition_final["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)', 'Percent of adults who workout moderately at least 150 mins a week',inplace=True)
@@ -88,12 +95,14 @@ app.layout = html.Div([
 
 @app.callback(
     dash.dependencies.Output('crossfilter-indicator-scatter', 'figure'),
-[dash.dependencies.Input('options-state', 'value'),
-dash.dependencies.Input('year-slider', 'value')])
+    [dash.dependencies.Input('options-state', 'value'),
+    dash.dependencies.Input('year-slider', 'value')])
 def update_graph(state_input,year):
     df_death_graph = df_death_final[df_death_final['Year'] <= year]
     # df_death_graph= df_death_final
+
     data = []
+
     if(state_input != 'All'):
         data=[ go.Scatter(
             x=df_death_graph.loc[df_death_graph['State'] == state_input]["Cause Name"],
@@ -139,6 +148,7 @@ def bar_chart_percentage(state, percentage_type, year):
   #  df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['YearStart'] == 2011]
     #df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['LocationDesc'] == state]
     data = []
+
     if(state == 'All'):
         return {
         'data': data,
@@ -154,9 +164,10 @@ def bar_chart_percentage(state, percentage_type, year):
         )
     }
 
-    df_nutrition_question = df_nutrition_final[df_nutrition_final['LocationDesc'] == state]
+    df_nutrition_question = df_nutrition_final.copy()
+    df_nutrition_question = df_nutrition_question[df_nutrition_question['YearStart'] <= year]
+    df_nutrition_question = df_nutrition_question.loc[df_nutrition_final['LocationDesc'] == state]
     df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['Question'] == percentage_type]
-
 
     gender_list = df_nutrition_question["Gender"].unique()
 
@@ -178,7 +189,7 @@ def bar_chart_percentage(state, percentage_type, year):
                 x=0, y=0.85, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
                 align='left', bgcolor='rgba(255, 255, 255, 0.5)',
-                text=percentage_type, font=dict(family='sans serif', size=18)
+                text="", font=dict(family='sans serif', size=18)#percentage_type
             )]
         )
     }
@@ -206,7 +217,8 @@ def update_pcp(state, year):
             )
         }
     # select year
-    df_nutrition_pcp = df_nutrition_final[df_nutrition_final['YearEnd'] == year]
+    df_nutrition_pcp = df_nutrition_final.copy()
+    df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_final['YearStart'] <= year]
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['LocationDesc'] == state]
 
     df_nutrition_pcp.replace(np.nan, 'unknown', inplace=True)
