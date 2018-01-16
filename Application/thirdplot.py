@@ -11,13 +11,13 @@ df = pd.read_csv('Nutrition.csv')
 df_nutrition = df[['YearStart','LocationDesc','Education','Income','Gender','Age(years)','Race/Ethnicity']]
 
 #assume clicked state
-df_nutrition = df_nutrition.loc[df_nutrition['LocationDesc'] == 'Alabama']
+df_nutrition = df_nutrition.loc[df_nutrition['LocationDesc'] == 'Hawaii']
 
 #here we need something like dropdown list
 yearList = df_nutrition["YearStart"].unique()
 
 #select year
-df_nutrition = df_nutrition.loc[df_nutrition['YearStart'] == 2012]
+df_nutrition = df_nutrition.loc[df_nutrition['YearStart'] == 2014]
 
 df_nutrition.replace(np.nan, 'unknown',inplace=True)
 

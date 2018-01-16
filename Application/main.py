@@ -9,6 +9,12 @@ app = dash.Dash()
 
 #preparing data set for question 1
 df_nutrition = pd.read_csv('Nutrition.csv')
+
+#replace long questions with a shorter equivalent
+df_nutrition["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)', 'Percent of adults who workout moderately at least 150 mins a week',inplace=True)
+df_nutrition["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activity and engage in muscle-strengthening activities on 2 or more days a week','Percent of adults who achieve at workout 150 mins a week & muscle-strengthening activities 2+ days a week',inplace=True)
+df_nutrition["Question"].replace('Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)','Percent of adults who workout moderately at least 300 mins a week',inplace=True)
+
 df_death = pd.read_csv('Leading_Causes_Death.csv')
 
 #only keep data from 2011 until 2015
@@ -35,17 +41,13 @@ df_nutrition_final = df_nutrition[['YearStart', 'YearEnd','LocationDesc','Educat
 #year list for slider
 year_list = df_nutrition_final["YearStart"].unique()
 
-#replace long questions with a shorter equivalent
-df_nutrition_final["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)', 'Percent of adults who workout moderately at least 150 mins a week',inplace=True)
-df_nutrition_final["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activity and engage in muscle-strengthening activities on 2 or more days a week','Percent of adults who achieve at workout 150 mins a week & muscle-strengthening activities 2+ days a week',inplace=True)
-df_nutrition_final["Question"].replace('Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)','Percent of adults who workout moderately at least 300 mins a week',inplace=True)
-
 #question list for the dropdown list
 question_list = df_nutrition_final["Question"].unique()
 
 #build the option list of the state dropdown list
 options_state_list = [{'label': 'All', 'value': 'All'}]
 options_state_list.extend([{'label': i, 'value': i} for i in state_list])
+
 app.layout = html.Div([
     html.Div([
 
@@ -92,7 +94,7 @@ app.layout = html.Div([
 
 ])
 
-
+#updating main plot
 @app.callback(
     dash.dependencies.Output('crossfilter-indicator-scatter', 'figure'),
     [dash.dependencies.Input('options-state', 'value'),
@@ -137,6 +139,7 @@ def update_graph(state_input,year):
         )
     }
 
+#updating second plot
 @app.callback(
     dash.dependencies.Output('bar-chart', 'figure'),
     [dash.dependencies.Input('options-state', 'value'),
@@ -194,7 +197,7 @@ def bar_chart_percentage(state, percentage_type, year):
         )
     }
 
-
+#updating third plot
 @app.callback(
     dash.dependencies.Output('parallel-coordinate', 'figure'),
     [dash.dependencies.Input('options-state', 'value'),
@@ -218,7 +221,7 @@ def update_pcp(state, year):
         }
     # select year
     df_nutrition_pcp = df_nutrition_final.copy()
-    df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_final['YearStart'] <= year]
+    df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_final['YearStart'] == year]
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['LocationDesc'] == state]
 
     df_nutrition_pcp.replace(np.nan, 'unknown', inplace=True)
@@ -238,28 +241,29 @@ def update_pcp(state, year):
     data = [
         go.Parcoords(
             line=dict(color=year,
-                     # colorscale='Jet',
-                      #showscale=True,
+                      colorscale='Jet',
+                      showscale=True,
                       # reversescale=True,
                       cmin=2011,
                       cmax=2015),
             dimensions=list([
                 dict(tickvals=[4, 3, 2, 1, 0],
                      ticktext=['unknown', 'Less HS', 'HS', 'TS', 'C'],
-                     label='education categories', values=df_nutrition_pcp['EducationCode']),
+                     label='education', values=df_nutrition_pcp['EducationCode']),
                 dict(tickvals=[7, 6, 5, 4, 3, 2, 1, 0],
                      ticktext=['unknown', '<15K', 'not reported', '>75k', '50k-75k', '35k-50k', '25k-35k', '15k-25k'],
-                     label='income levels', values=df_nutrition_pcp['IncomeCode']),
+                     label='income level', values=df_nutrition_pcp['IncomeCode']),
                 dict(tickvals=[2, 1, 0],
                      ticktext=['unknown', 'M', 'F'],
-                     label='genders', values=df_nutrition_pcp['GenderCode']),
+                     label='gender', values=df_nutrition_pcp['GenderCode']),
                 dict(tickvals=[6, 5, 4, 3, 2, 1, 0],
+                     visible=True,
                      ticktext=['unknown', '65+', '55-64', '45-54', '35-44', '25-34', '18-24'],
-                     label='age categories', values=df_nutrition_pcp['Age(years)Code']),
+                     label='age category', values=df_nutrition_pcp['Age(years)Code']),
                 dict(tickvals=[8, 7, 6, 5, 4, 3, 2, 1, 0],
                      ticktext=['unknown', 'other', 'NonHisp W', 'NonHisp B', 'Hisp', 'Hawaiian', 'Asian', 'AmericInd',
                                '2+ races'],
-                     label='races', values=df_nutrition_pcp['Race/EthnicityCode'])
+                     label='race', values=df_nutrition_pcp['Race/EthnicityCode'])
             ])
         )
     ]
@@ -270,7 +274,7 @@ def update_pcp(state, year):
             paper_bgcolor='#E5E5E5',
             showlegend=True,
             height=300,
-            margin={'l': 20, 'b': 30, 'r': 10, 't': 10},
+            margin={'l': 35, 'b': 10, 'r': 10, 't': 50},
             annotations=[dict(
                 x=0, y=1, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
