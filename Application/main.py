@@ -23,8 +23,11 @@ df_death = pd.read_csv('Leading_Causes_Death.csv')
 df_death = df_death.loc[df_death['Year'] >= 2011]
 df_nutrition = df_nutrition.loc[df_nutrition['YearStart'] <= 2015]
 
+#remove Unitates States --> country, and we need only states
+df_death_final = df_death.loc[df_death['State'] != 'United States']
+
 #remove 'All Causes'
-df_death_final = df_death.loc[df_death['Cause Name'] != 'All Causes']
+df_death_final = df_death_final.loc[df_death_final['Cause Name'] != 'All Causes']
 
 #remove irrelevant columns
 df_death_final = df_death_final.drop('113 Cause Name', axis=1)
@@ -131,9 +134,10 @@ def update_graph(state_input,year):
     return {
         'data': data,
         'layout': go.Layout(
-            margin={'l': 40, 'b': 120, 't': 10, 'r': 65},
+            margin={'l': 50, 'b': 120, 't': 10, 'r': 65},
             height=550,
-            hovermode='closest'
+            hovermode='closest',
+            yaxis=dict(title='avg no of deaths',zeroline=False)
         )
     }
 
@@ -186,8 +190,8 @@ def bar_chart_percentage(state, percentage_type, year):
         'layout': go.Layout(
             barmode='stack',
             height= 250,
-            margin ={'l': 25, 'b': 30, 'r': 10, 't': 10},
-            yaxis=dict(range=[1, 100]),
+            margin ={'l': 40, 'b': 30, 'r': 10, 't': 10},
+            yaxis=dict(range=[1, 100],title='percentage'),
             annotations=[dict(
                 x=0, y=0.85, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
@@ -274,6 +278,7 @@ def update_pcp(state, year):
     for ed in incomeList:
         trace = go.Scatter(
             x=df_income.loc[df_income['Income'] == ed]["YearStart"],
+            #the count values are stores in YearEnd column
             y=df_income.loc[df_income['Income'] == ed]["YearEnd"],
             mode='lines',
             name="In_" + ed,
@@ -313,8 +318,7 @@ def update_pcp(state, year):
     return {
         'data': data,
         'layout': go.Layout(
-            #xaxis=dict(title='year'),
-            #yaxis=dict(title='count'),
+            yaxis=dict(title='count'),
             height=300,
             margin={'l': 40, 'b': 30, 'r': 10, 't': 10},
             annotations=[dict(
