@@ -5,9 +5,10 @@ import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
 
+#create dash application
 app = dash.Dash()
 
-#preparing data set for question 1
+#read first dataset
 df_nutrition = pd.read_csv('Nutrition.csv')
 
 #replace long questions with a shorter equivalent
@@ -15,6 +16,7 @@ df_nutrition["Question"].replace('Percent of adults who achieve at least 150 min
 df_nutrition["Question"].replace('Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activity and engage in muscle-strengthening activities on 2 or more days a week','Percent of adults who achieve at workout 150 mins a week & muscle-strengthening activities 2+ days a week',inplace=True)
 df_nutrition["Question"].replace('Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)','Percent of adults who workout moderately at least 300 mins a week',inplace=True)
 
+#read second dataset
 df_death = pd.read_csv('Leading_Causes_Death.csv')
 
 #only keep data from 2011 until 2015
@@ -27,12 +29,11 @@ df_death_final = df_death.loc[df_death['Cause Name'] != 'All Causes']
 #remove irrelevant columns
 df_death_final = df_death_final.drop('113 Cause Name', axis=1)
 df_death_final = df_death_final.drop('Age-adjusted Death Rate', axis=1)
-#df_death_final = df_death_final.drop('Year', axis=1)
 
 #aggregate per cause of death per state and compute average number of deaths
 df_death_final = df_death_final.groupby(['Cause Name', 'State'],as_index=False).mean()
 
-#extract list of state
+#extract list of states
 state_list = df_death_final["State"].unique()
 
 #only keep interesting columns
@@ -48,9 +49,9 @@ question_list = df_nutrition_final["Question"].unique()
 options_state_list = [{'label': 'All', 'value': 'All'}]
 options_state_list.extend([{'label': i, 'value': i} for i in state_list])
 
+#create layout
 app.layout = html.Div([
     html.Div([
-
         html.Div([
             dcc.Dropdown(
                 id='options-state',
@@ -80,7 +81,6 @@ app.layout = html.Div([
         'backgroundColor': 'rgb(250, 250, 250)',
         'padding': '10px 5px'
     }),
-
     html.Div([
         dcc.Graph(
             id='crossfilter-indicator-scatter',
@@ -101,8 +101,6 @@ app.layout = html.Div([
     dash.dependencies.Input('year-slider', 'value')])
 def update_graph(state_input,year):
     df_death_graph = df_death_final[df_death_final['Year'] <= year]
-    # df_death_graph= df_death_final
-
     data = []
 
     if(state_input != 'All'):
@@ -146,10 +144,6 @@ def update_graph(state_input,year):
      dash.dependencies.Input('percentage-type', 'value'),
      dash.dependencies.Input('year-slider', 'value')])
 def bar_chart_percentage(state, percentage_type, year):
-    # selected from lists
-   # df_nutrition_question = df_nutrition_final[df_nutrition_final['YearEnd'] == year]
-  #  df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['YearStart'] == 2011]
-    #df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['LocationDesc'] == state]
     data = []
 
     if(state == 'All'):
@@ -158,7 +152,7 @@ def bar_chart_percentage(state, percentage_type, year):
         'layout': go.Layout(
             height= 250,
             margin ={'l': 20, 'b': 30, 'r': 10, 't': 10},
-            yaxis=dict(range=[0,100]),
+            yaxis=dict(range=[1,100]),
             annotations=[dict(
                 x=0, y=0.85, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
@@ -225,7 +219,7 @@ def update_pcp(state, year):
                 )]
             )
         }
-    # select year
+
     df_nutrition_pcp = df_nutrition_final.copy()
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_final['YearStart'] <= year]
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['LocationDesc'] == state]
