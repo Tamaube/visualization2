@@ -259,46 +259,62 @@ def update_pcp(state, year):
     df_race = df_race.groupby(['LocationDesc', 'YearStart', 'Race/Ethnicity'], as_index=False).count()
 
     data = []
+    i=0
 
     educationList = df_education["Education"].unique()
+    color_education=['#8697EA', '#4E67E5', '#3C50B2', '#232E66', '#3C4880']
     for ed in educationList:
         trace = go.Scatter(
             x=df_education.loc[df_education['Education'] == ed]["YearStart"],
             y=df_education.loc[df_education['Education'] == ed]["YearEnd"],
             mode='lines',
+            marker=dict(color=color_education[i]),
             name="Ed_" + ed
         )
         data.append(trace)
+        i=i+1
 
     incomeList = df_income["Income"].unique()
+    color_income = ['#FF4A6A' , '#FF210F', '#CC1A0C', '#7F1107', '#9A1D1E', '#FF5B5C']
+    i=0
     for ed in incomeList:
         trace = go.Scatter(
             x=df_income.loc[df_income['Income'] == ed]["YearStart"],
             y=df_income.loc[df_income['Income'] == ed]["YearEnd"],
             mode='lines',
-            name="In_" + ed
+            name="In_" + ed,
+            marker=dict(color=color_income[i])
         )
         data.append(trace)
+        i = i+1
 
+    i=0
+    color_age = ['#E8A0EA', '#E267E5', '#E451E5', '#E530E5', '#B050B2', '#642E66', '#7F4B80']
     ageList = df_age["Age(years)"].unique()
     for ed in ageList:
         trace = go.Scatter(
             x=df_age.loc[df_age['Age(years)'] == ed]["YearStart"],
             y=df_age.loc[df_age['Age(years)'] == ed]["YearEnd"],
             mode='lines',
+            marker=dict( color=color_age[i]),
             name="Age_" + ed
         )
         data.append(trace)
+        i=i+1
 
     raceList = df_race["Race/Ethnicity"].unique()
+    i=0
+    color_race=['#9FEA82', '#45E508', '#36B206', '#1F6603', '#338015', '#A4E52F', '#E5CE21', '#66630A', '#EA6C00']
     for ed in raceList:
         trace = go.Scatter(
             x=df_race.loc[df_race['Race/Ethnicity'] == ed]["YearStart"],
             y=df_race.loc[df_race['Race/Ethnicity'] == ed]["YearEnd"],
             mode='lines',
+            marker=dict(color=color_race[i]),
             name="Race_" + ed
         )
         data.append(trace)
+        i=i+1
 
     return {
         'data': data,
