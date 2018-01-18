@@ -173,14 +173,18 @@ def bar_chart_percentage(state, percentage_type, year):
     df_nutrition_question = df_nutrition_question.loc[df_nutrition_question['Question'] == percentage_type]
 
     gender_list = df_nutrition_question["Gender"].unique()
+    gender_color_list = {"Female": '#FFB6C1', "Male" : '#ADD8E6', np.nan : '#FFFFFF' }
 
     for gender in gender_list:
+        value = df_nutrition_question.loc[df_nutrition_question['Gender'] == gender]["Data_Value"]
         trace = go.Bar(
             x=df_nutrition_question.loc[df_nutrition_question['Gender'] == gender]["YearStart"],
-            y=df_nutrition_question.loc[df_nutrition_question['Gender'] == gender]["Data_Value"],
-            name=gender
+            y=value,
+            name=gender,
+            marker=dict( color=gender_color_list[gender])
         )
         data.append(trace)
+
 
     return {
         'data': data,
@@ -208,7 +212,7 @@ def update_pcp(state, year):
         return {
             'data': [],
             'layout': go.Layout(
-                height=250,
+                height=300,
                 margin={'l': 20, 'b': 30, 'r': 10, 't': 10},
                 annotations=[dict(
                     x=0, y=0.85, xanchor='left', yanchor='bottom',
@@ -299,8 +303,8 @@ def update_pcp(state, year):
         'layout': go.Layout(
             #xaxis=dict(title='year'),
             #yaxis=dict(title='count'),
-            height=250,
-            margin={'l': 20, 'b': 30, 'r': 10, 't': 10},
+            height=300,
+            margin={'l': 40, 'b': 30, 'r': 10, 't': 10},
             annotations=[dict(
                 x=0, y=1, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
