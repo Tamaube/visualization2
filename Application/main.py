@@ -133,7 +133,7 @@ def update_graph(state_input,year):
     return {
         'data': data,
         'layout': go.Layout(
-            margin={'l': 40, 'b': 120, 't': 10, 'r': 0},
+            margin={'l': 40, 'b': 120, 't': 10, 'r': 65},
             height=550,
             hovermode='closest'
         )
