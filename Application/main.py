@@ -193,7 +193,7 @@ def bar_chart_percentage(state, percentage_type, year):
             barmode='stack',
             height= 250,
             margin ={'l': 25, 'b': 30, 'r': 10, 't': 10},
-            yaxis=dict(range=[0, 100]),
+            yaxis=dict(range=[1, 100]),
             annotations=[dict(
                 x=0, y=0.85, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
