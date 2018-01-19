@@ -34,9 +34,6 @@ df_death_final = df_death_final.loc[df_death_final['Cause Name'] != 'All Causes'
 df_death_final = df_death_final.drop('113 Cause Name', axis=1)
 df_death_final = df_death_final.drop('Age-adjusted Death Rate', axis=1)
 
-#aggregate per cause of death per state and compute average number of deaths
-df_death_final = df_death_final.groupby(['Cause Name', 'State'],as_index=False).mean()
-
 #extract list of states
 state_list = df_death_final["State"].unique()
 
@@ -104,7 +101,10 @@ app.layout = html.Div([
     [dash.dependencies.Input('options-state', 'value'),
     dash.dependencies.Input('year-slider', 'value')])
 def update_graph(state_input,year):
-    df_death_graph = df_death_final[df_death_final['Year'] <= year]
+    df_death_graph = df_death_final.loc[df_death_final['Year'] <= year]
+    # aggregate per cause of death per state and compute average number of deaths
+    df_death_graph = df_death_graph.groupby(['Cause Name', 'State'], as_index=False).mean()
+
     data = []
 
     if(state_input != 'All'):

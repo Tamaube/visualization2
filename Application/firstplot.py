@@ -8,7 +8,7 @@ import pandas as pd
 df_nutrition = pd.read_csv('Nutrition.csv')
 df_death = pd.read_csv('Leading_Causes_Death.csv')
 #only keep data from 2011 onwards
-df_death_final = df_death.loc[df_death['Year'] >= 2011]
+df_death_final = df_death.loc[df_death['Year'] == 2012]
 #remove 'All Causes'
 df_death_final = df_death.loc[df_death['Cause Name'] != 'All Causes']
 #remove irrelevant columns
