@@ -192,6 +192,7 @@ def bar_chart_percentage(state, percentage_type, year):
             height= 250,
             margin ={'l': 40, 'b': 30, 'r': 10, 't': 10},
             yaxis=dict(range=[1, 100],title='percentage'),
+            xaxis=dict(tickformat=',d'),
             annotations=[dict(
                 x=0, y=0.85, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
@@ -319,6 +320,7 @@ def update_pcp(state, year):
         'data': data,
         'layout': go.Layout(
             yaxis=dict(title='count'),
+            xaxis=dict(tickformat=',d'),
             height=300,
             margin={'l': 40, 'b': 30, 'r': 10, 't': 10},
             annotations=[dict(
