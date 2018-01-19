@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 
 #create dash application
-app = dash.Dash()
+app = dash.Dash(__name__)
+server = app.server
 
 #read first dataset
 df_nutrition = pd.read_csv('Nutrition.csv')
@@ -155,8 +156,7 @@ def bar_chart_percentage(state, percentage_type, year):
         'data': data,
         'layout': go.Layout(
             height= 250,
-            margin ={'l': 20, 'b': 30, 'r': 10, 't': 10},
-            yaxis=dict(range=[1,100]),
+            margin ={'l': 40, 'b': 30, 'r': 10, 't': 10},
             annotations=[dict(
                 x=0, y=0.85, xanchor='left', yanchor='bottom',
                 xref='paper', yref='paper', showarrow=False,
@@ -213,7 +213,7 @@ def update_pcp(state, year):
             'data': [],
             'layout': go.Layout(
                 height=300,
-                margin={'l': 20, 'b': 30, 'r': 10, 't': 10},
+                margin={'l': 40, 'b': 30, 'r': 10, 't': 10},
                 annotations=[dict(
                     x=0, y=0.85, xanchor='left', yanchor='bottom',
                     xref='paper', yref='paper', showarrow=False,
