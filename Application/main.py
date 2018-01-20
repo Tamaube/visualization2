@@ -232,7 +232,7 @@ def update_pcp(state, percentage_type, year):
             'layout': go.Layout(
                 height=300,
                 margin={'l': 40, 'b': 30, 'r': 10, 't': 10},
-                yaxis=dict(title='count', range=[1, 100]),
+                yaxis=dict(title='percentage', range=[1, 100]),
                 xaxis=dict(range=[2011, 2015], tickformat=',d'),
                 annotations=[dict(
                     x=0, y=0.85, xanchor='left', yanchor='bottom',
@@ -302,7 +302,6 @@ def update_pcp(state, percentage_type, year):
     for ed in incomeList:
         trace = go.Scatter(
             x=df_income.loc[df_income['Income'] == ed]["YearStart"],
-            # the count values are stores in YearEnd column
             y=df_income.loc[df_income['Income'] == ed]["Data_Value"],
             mode='lines',
             name="In_" + ed,
