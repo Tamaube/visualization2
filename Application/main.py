@@ -115,6 +115,7 @@ app.layout = html.Div([
 def update_graph(state_input, year):
     df_death_graph = df_death_final.loc[df_death_final['Year'] <= year]
     # aggregate per cause of death per state and compute average number of deaths
+
     df_death_graph = df_death_graph.groupby(['Cause Name', 'State'], as_index=False).mean()
 
     data = []
@@ -221,9 +222,10 @@ def bar_chart_percentage(state, percentage_type, year):
 @app.callback(
     dash.dependencies.Output('line-chart', 'figure'),
     [dash.dependencies.Input('options-state', 'value'),
+    dash.dependencies.Input('percentage-type', 'value'),
      dash.dependencies.Input('year-slider', 'value')
      ])
-def update_pcp(state, year):
+def update_pcp(state, percentage_type, year):
     if (state == 'All'):
         return {
             'data': [],
@@ -245,8 +247,11 @@ def update_pcp(state, year):
     df_nutrition_pcp = df_nutrition_final.copy()
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_final['YearStart'] <= year]
     df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['LocationDesc'] == state]
+    df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['Question'] == percentage_type]
 
     df_nutrition_pcp.replace(np.nan, 'unknown', inplace=True)
+    df_nutrition_pcp = df_nutrition_pcp.loc[df_nutrition_pcp['Data_Value'] != 'unknown']
+
     df_nutrition_pcp.replace('Less than $15,000', '25k', inplace=True)
     df_nutrition_pcp.replace('$15,000 - $24,999', '25k', inplace=True)
     df_nutrition_pcp.replace('$25,000 - $34,999', '25k-50k', inplace=True)
@@ -256,23 +261,24 @@ def update_pcp(state, year):
 
     # education
     # keep relevant columns
-    df_education = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Education', 'YearEnd']]
-    df_education = df_education.groupby(['LocationDesc', 'YearStart', 'Education'], as_index=False).count()
+    df_education = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Education', 'Data_Value']]
+    df_education = df_education.groupby(['LocationDesc', 'YearStart', 'Education'],as_index=False).mean()
+
 
     # income
     # keep relevant columns
-    df_income = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Income', 'YearEnd']]
-    df_income = df_income.groupby(['LocationDesc', 'YearStart', 'Income'], as_index=False).count()
+    df_income = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Income', 'Data_Value']]
+    df_income = df_income.groupby(['LocationDesc', 'YearStart', 'Income'], as_index=False).mean()
 
     # age
     # keep rrelevant columns
-    df_age = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Age(years)', 'YearEnd']]
-    df_age = df_age.groupby(['LocationDesc', 'YearStart', 'Age(years)'], as_index=False).count()
+    df_age = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Age(years)', 'Data_Value']]
+    df_age = df_age.groupby(['LocationDesc', 'YearStart', 'Age(years)'], as_index=False).mean()
 
     # race
     # keep rrelevant columns
-    df_race = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Race/Ethnicity', 'YearEnd']]
-    df_race = df_race.groupby(['LocationDesc', 'YearStart', 'Race/Ethnicity'], as_index=False).count()
+    df_race = df_nutrition_pcp[['YearStart', 'LocationDesc', 'Race/Ethnicity', 'Data_Value']]
+    df_race = df_race.groupby(['LocationDesc', 'YearStart', 'Race/Ethnicity'], as_index=False).mean()
 
     data = []
     i = 0
@@ -282,7 +288,7 @@ def update_pcp(state, year):
     for ed in educationList:
         trace = go.Scatter(
             x=df_education.loc[df_education['Education'] == ed]["YearStart"],
-            y=df_education.loc[df_education['Education'] == ed]["YearEnd"],
+            y=df_education.loc[df_education['Education'] == ed]["Data_Value"],
             mode='lines',
             marker=dict(color=color_education[i]),
             name="Ed_" + ed
@@ -297,7 +303,7 @@ def update_pcp(state, year):
         trace = go.Scatter(
             x=df_income.loc[df_income['Income'] == ed]["YearStart"],
             # the count values are stores in YearEnd column
-            y=df_income.loc[df_income['Income'] == ed]["YearEnd"],
+            y=df_income.loc[df_income['Income'] == ed]["Data_Value"],
             mode='lines',
             name="In_" + ed,
             marker=dict(color=color_income[i])
@@ -311,7 +317,7 @@ def update_pcp(state, year):
     for ed in ageList:
         trace = go.Scatter(
             x=df_age.loc[df_age['Age(years)'] == ed]["YearStart"],
-            y=df_age.loc[df_age['Age(years)'] == ed]["YearEnd"],
+            y=df_age.loc[df_age['Age(years)'] == ed]["Data_Value"],
             mode='lines',
             marker=dict(color=color_age[i]),
             name="Age_" + ed
@@ -325,7 +331,7 @@ def update_pcp(state, year):
     for ed in raceList:
         trace = go.Scatter(
             x=df_race.loc[df_race['Race/Ethnicity'] == ed]["YearStart"],
-            y=df_race.loc[df_race['Race/Ethnicity'] == ed]["YearEnd"],
+            y=df_race.loc[df_race['Race/Ethnicity'] == ed]["Data_Value"],
             mode='lines',
             marker=dict(color=color_race[i]),
             name="Race_" + ed
@@ -336,9 +342,9 @@ def update_pcp(state, year):
     return {
         'data': data,
         'layout': go.Layout(
-            yaxis=dict(title='count',zeroline = False),
+            yaxis=dict(title='percentage',range=[1,]),
             height=300,
-            margin={'l': 40, 'b': 30, 'r': 10, 't': 10},
+            margin={'l': 40, 'b': 30, 'r': 10, 't': 20},
             xaxis=dict(tickformat=',d'),
             annotations=[dict(
                 x=0, y=1, xanchor='left', yanchor='bottom',
