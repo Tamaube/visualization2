@@ -1,4 +1,4 @@
-#only script used
+#the only script used
 
 import dash
 import dash_core_components as dcc

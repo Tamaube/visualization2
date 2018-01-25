@@ -110,7 +110,6 @@ data = [
 ]
 
 layout = go.Layout(
-    title='Bla',
     plot_bgcolor = '#E5E5E5',
     paper_bgcolor = '#E5E5E5',
     showlegend=True

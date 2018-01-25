@@ -14,21 +14,10 @@ df_nutrition = df[['YearStart','LocationDesc','Education','Income','Gender','Age
 #assume clicked state
 df_nutrition = df_nutrition.loc[df_nutrition['LocationDesc'] == 'Hawaii']
 
-#here we need something like dropdown list
-yearList = df_nutrition["YearStart"].unique()
-
 #select year
 df_nutrition = df_nutrition.loc[df_nutrition['YearStart'] == 2014]
 
 df_nutrition.replace(np.nan, 'unknown',inplace=True)
-
-#prepare dataset income NOT USED ANYMORE
-# df_nutrition.replace('Less than $15,000', '25k',inplace=True)
-# df_nutrition.replace('$15,000 - $24,999', '25k',inplace=True)
-# df_nutrition.replace('$25,000 - $34,999', '$25k-$50k',inplace=True)
-# df_nutrition.replace('$35,000 - $49,999', '$25k-$50k',inplace=True)
-# df_nutrition.replace('$50,000 - $74,999', '>$50k',inplace=True)
-# df_nutrition.replace('$75,000 or greater', '>$50k',inplace=True)
 
 #convert categories into numerical vals
 df_nutrition['Education'] = pd.Categorical(df_nutrition['Education'])
@@ -41,10 +30,6 @@ df_nutrition['Age(years)'] = pd.Categorical(df_nutrition['Age(years)'])
 df_nutrition['Age(years)Code'] = df_nutrition['Age(years)'].cat.codes
 df_nutrition['Race/Ethnicity'] = pd.Categorical(df_nutrition['Race/Ethnicity'])
 df_nutrition['Race/EthnicityCode'] = df_nutrition['Race/Ethnicity'].cat.codes
-
-#df_nutrition.to_csv('categoriesPlot3.csv', sep=',')
-#print(df_nutrition['Age(years)'].unique())
-#print(df_nutrition['Age(years)'].astype('category').cat.codes.unique())
 
 data = [
     go.Parcoords(
@@ -75,7 +60,6 @@ data = [
 ]
 
 layout = go.Layout(
-    title='Bla',
     plot_bgcolor = '#E5E5E5',
     paper_bgcolor = '#E5E5E5',
     showlegend=True
